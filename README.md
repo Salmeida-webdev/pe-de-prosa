@@ -30,6 +30,8 @@ Este repositório é um **projeto de portfólio demonstrativo**. O nome, os auto
 
 2. Copie `.env.example` para `.env`. O exemplo aponta para o Worker local e habilita a área editorial local.
 
+   Antes de iniciar o Worker, crie `.dev.vars` na raiz com os valores locais de `DEMO_SECRET`, `AUTHOR_PASSWORD`, `REVIEWER_PASSWORD` e `EDITOR_PASSWORD`. Use valores aleatórios próprios. Esse arquivo fica fora do Git; não publique nem reutilize esses segredos em produção.
+
 3. Crie o banco local e carregue os dados de exemplo:
 
    ```bash
@@ -55,7 +57,7 @@ Este repositório é um **projeto de portfólio demonstrativo**. O nome, os auto
 
 ### Acessos editoriais locais
 
-Todos usam a senha `prosa2026`:
+Use os nomes de usuário abaixo com as senhas locais definidas em `.dev.vars`:
 
 | Usuário | Papel | Permissões demonstradas |
 | --- | --- | --- |
@@ -63,7 +65,7 @@ Todos usam a senha `prosa2026`:
 | `revisor` | Revisor | Aprovar ou devolver textos em revisão |
 | `editor` | Editor | Publicar textos aprovados e arquivar textos publicados |
 
-Os acessos são fictícios e servem apenas para a demonstração local. Não reutilize esses valores em ambientes reais.
+As contas são fictícias e servem apenas para a demonstração local. As senhas não são armazenadas no código nem no repositório.
 
 ## Restaurar o banco local
 

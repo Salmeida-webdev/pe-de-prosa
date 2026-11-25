@@ -1,0 +1,13 @@
+name = "pedeprosa-api-local"
+main = "cloudflare/worker.mjs"
+compatibility_date = "2026-11-25"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pe-de-prosa"
+database_id = "00000000-0000-4000-8000-000000000001"
+migrations_dir = "cloudflare/migrations"
+
+[vars]
+EDITORIAL_DEMO = "true"

@@ -1,0 +1,8 @@
+<script setup lang="ts">
+import { localAuthors, portalFetch } from '~/composables/usePortal'
+const data=await portalFetch('/authors',{authors:localAuthors}) as any
+useSeoMeta({title:'Autores',description:'Conheça quem escreve no Pé de Prosa.'})
+</script>
+
+<template><div class="container"><header class="page-intro"><span class="eyebrow">Quem escreve</span><h1>Autores</h1><p>Repórteres, colunistas e editores que acompanham as histórias e as perguntas desta publicação.</p></header><div class="author-grid"><article v-for="person in data.authors" :key="person.id" class="author-card"><div class="author-mark">{{ person.name.split(' ').map((n:string)=>n[0]).slice(0,2).join('') }}</div><div><span class="eyebrow">{{ person.role }}</span><h2><NuxtLink :to="`/autor/${person.slug}`">{{ person.name }}</NuxtLink></h2><p>{{ person.bio }}</p><span class="article-count">{{ person.article_count }} textos publicados</span><NuxtLink class="text-link" :to="`/autor/${person.slug}`">Ver textos e perfil →</NuxtLink></div></article></div></div></template>
+<style scoped>.author-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 2rem}.author-card{display:grid;grid-template-columns:72px 1fr;gap:1rem;padding:1.5rem 0;border-bottom:1px solid var(--line)}.author-mark{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:#d9e0d5;color:var(--forest);font:600 1.35rem var(--serif)}.author-card h2{font:600 1.35rem var(--serif);margin:.2rem 0}.author-card p{font-size:.88rem;color:var(--muted)}.article-count{display:block;margin:.5rem 0;font-size:.72rem;color:var(--muted)}@media(max-width:650px){.author-grid{grid-template-columns:1fr}}</style>

@@ -1,0 +1,26 @@
+{
+  "name": "pe-de-prosa",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "typecheck": "nuxt typecheck",
+    "preview": "nuxt preview",
+    "db:local": "wrangler d1 execute pe-de-prosa --local --config wrangler.local.toml --file=cloudflare/migrations/0001_schema.sql",
+    "db:seed:local": "node scripts/seed-data.mjs && wrangler d1 execute pe-de-prosa --local --config wrangler.local.toml --file=cloudflare/demo-seed.sql",
+    "dev:api": "wrangler dev --config wrangler.local.toml --port 8787"
+  },
+  "dependencies": {
+    "nuxt": "^4.7.0",
+    "vue": "^3.5.24",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@netlify/nuxt": "^1.0.1",
+    "wrangler": "^4.48.0",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.14"
+  }
+}
