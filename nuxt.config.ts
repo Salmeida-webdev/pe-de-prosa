@@ -6,6 +6,8 @@ export default defineNuxtConfig({
   ssr: true,
   devtools: { enabled: false },
   app: {
+    // Use a fresh public path to avoid reusing the broken production /_nuxt asset map.
+    buildAssetsDir: '/_nuxt-v2/',
     head: {
       htmlAttrs: { lang: 'pt-BR' },
       title: 'Pé de Prosa — Conteúdo que rende conversa',
