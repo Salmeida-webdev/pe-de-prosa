@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{ article: { id?: string; slug?: string; category?: string; category_name?: string; title?: string; excerpt?: string; cover?: string; alt_text?: string }; priority?: boolean; variant?: number }>(), { priority: false, variant: 0 })
+const props = withDefaults(defineProps<{ article: { id?: string; slug?: string; category?: string; category_name?: string; title?: string; excerpt?: string; cover?: string; alt_text?: string }; priority?: boolean; variant?: number }>(), { priority: false })
 
 type EditorialPhoto = { src: string; alt: string; keywords: string[] }
 
@@ -54,7 +54,7 @@ const selectedPhoto = computed(() => {
   }
   const hash = [...key].reduce((total, character) => (total * 31 + character.charCodeAt(0)) >>> 0, 7)
   const pool = matchingGroups.length ? matchingGroups[hash % matchingGroups.length]?.photoIds || [] : photos.map((_, index) => index)
-  const photoIndex = pool[(hash + Math.max(0, props.variant)) % pool.length] ?? 0
+  const photoIndex = pool[(props.variant === undefined ? hash : Math.max(0, props.variant)) % pool.length] ?? 0
   return photos[photoIndex] || photos[0]!
 })
 
