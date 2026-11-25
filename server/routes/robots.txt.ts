@@ -1,4 +1,4 @@
 export default defineEventHandler((event) => {
   setHeader(event, 'Content-Type', 'text/plain; charset=utf-8')
-  return 'User-agent: *\nAllow: /\nDisallow: /redacao\nSitemap: https://pedeprosa.netlify.app/sitemap.xml\n'
+  return 'User-agent: *\nAllow: /\nDisallow: /redacao\nDisallow: /painel\nSitemap: https://pedeprosa.netlify.app/sitemap.xml\n'
 })

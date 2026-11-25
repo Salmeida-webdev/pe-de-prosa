@@ -17,7 +17,7 @@ export default defineNuxtConfig({
         { name: 'twitter:card', content: 'summary_large_image' }
       ],
       link: [
-        { rel: 'icon', type: 'image/png', href: '/images/brand-jabuticaba.png' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'alternate', type: 'application/rss+xml', title: 'Pé de Prosa', href: '/feed.xml' }
       ]
     }
@@ -29,10 +29,7 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    prerender: {
-      routes: ['/sitemap.xml', '/robots.txt', '/feed.xml'],
-      ignore: process.env.NUXT_PUBLIC_EDITORIAL_DEMO === 'true' ? [] : ['/redacao']
-    }
+    prerender: { routes: [] }
   },
   typescript: { strict: true, typeCheck: false }
 })

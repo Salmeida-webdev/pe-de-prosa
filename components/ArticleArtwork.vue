@@ -1,22 +1,30 @@
 <script setup lang="ts">
 const props = defineProps<{ article: { category?: string; title: string; cover?: string; alt_text?: string } }>()
-const category = computed(() => props.article.category || 'cultura')
-const alt = computed(() => props.article.alt_text || ({ cidade: 'Ilustração editorial de casas brasileiras e vida de bairro', cultura: 'Ilustração editorial de livros e memória', cotidiano: 'Ilustração editorial de caderno de receitas e vida cotidiana', ideias: 'Ilustração editorial sobre leitura e ideias', trabalho: 'Ilustração editorial sobre trabalho e deslocamento', natureza: 'Ilustração editorial de uma jabuticabeira e paisagem brasileira' }[category.value] || 'Ilustração editorial do Pé de Prosa'))
-const image = computed(() => {
-  const files: Record<string, string> = {
-    cidade: '/images/casas-brasileiras.png',
-    cultura: '/images/livros-leitura.png',
-    cotidiano: '/images/caderno-receitas.png',
-    ideias: '/images/livros-leitura.png',
-    trabalho: '/images/trabalho-entrega.png',
-    natureza: '/images/brand-jabuticaba.png'
-  }
-  return files[category.value] || files.cultura
-})
+
+const crop: Record<string, string> = {
+  cidade: '0% 0%',
+  cotidiano: '100% 0%',
+  comida: '50% 0%',
+  cultura: '0% 100%',
+  ideias: '0% 100%',
+  trabalho: '50% 100%',
+  natureza: '100% 100%'
+}
+
+const isCustomPhoto = computed(() => Boolean(props.article.cover && (/^https:\/\//i.test(props.article.cover) || props.article.cover.startsWith('/uploads/'))))
+const style = computed(() => isCustomPhoto.value
+  ? { backgroundImage: `url("${props.article.cover}")`, backgroundPosition: 'center' }
+  : { backgroundPosition: crop[props.article.category || 'cultura'] || crop.cultura })
+const alt = computed(() => props.article.alt_text || `Fotografia editorial sobre ${props.article.title}`)
 </script>
 
 <template>
-  <div class="cover-art" :class="category">
-    <img :src="image" :alt="alt" width="900" height="600" loading="lazy">
+  <div class="cover-art" :class="props.article.category || 'cultura'" :style="style" role="img" :aria-label="alt">
+    <img v-if="isCustomPhoto" :src="props.article.cover" :alt="alt" loading="lazy" decoding="async">
   </div>
 </template>
+
+<style scoped>
+.cover-art{background-image:url('/images/editorial-contact-sheet.webp');background-size:300% 200%;background-repeat:no-repeat;background-color:#d9d6ce}
+.cover-art img{width:100%;height:100%;min-height:inherit;object-fit:cover;position:absolute;inset:0}
+</style>

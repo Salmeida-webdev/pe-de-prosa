@@ -4,6 +4,19 @@ const demoAccounts = {
   revisor: { username: 'revisor', passwordKey: 'REVIEWER_PASSWORD', role: 'revisor', name: 'Bia Sampaio', authorId: 'bia-sampaio' },
   editor: { username: 'editor', passwordKey: 'EDITOR_PASSWORD', role: 'editor', name: 'Caio Nunes', authorId: 'caio-nunes' }
 }
+const defaultSettings = {
+  siteName: 'Pé de Prosa', tagline: 'Jornalismo, cultura e vida brasileira', mastheadTopLine: 'Jornalismo, cultura e vida brasileira',
+  footerDescription: 'Reportagens, ensaios e histórias para compreender o Brasil com contexto e curiosidade.', footerSubline: 'Uma publicação editorial independente',
+  homepageTitle: 'Histórias para ler com calma', homepageDescription: 'Novos olhares sobre o cotidiano, a cultura e as transformações do país.',
+  aboutTitle: 'Uma publicação feita para olhar mais de perto.', aboutDescription: 'Reportagens, ensaios e histórias que ajudam a conectar experiências, ideias e lugares do Brasil.',
+  theme: { paper: '#fffefa', ink: '#171a18', accent: '#9d382a', forest: '#263b35' },
+  social: { instagram: '', facebook: '', youtube: '' }
+}
+const defaultPages = [
+  { slug: 'sobre', title: 'Sobre a publicação', summary: 'Conheça a linha editorial e a proposta do Pé de Prosa.', sections: [{ heading: 'Contexto antes do ruído.', body: 'O Pé de Prosa é uma publicação editorial brasileira dedicada a histórias, ideias e observações sobre a vida em comum. Escolhemos temas que ajudam a entender o cotidiano, as mudanças nas cidades e as perguntas que atravessam a sociedade.' }, { heading: 'Clareza, contexto e escuta', body: 'Cada texto procura explicar o que está em jogo sem perder a clareza nem a curiosidade. Reportagens, ensaios e opiniões devem ter autoria e abordagem identificadas, com espaço para correções quando necessárias.' }], seo_title: 'Sobre a publicação', seo_description: 'Conheça a proposta editorial do Pé de Prosa.' },
+  { slug: 'politica-editorial', title: 'Política editorial', summary: 'Os critérios que orientam seleção, edição e apresentação dos textos.', sections: [{ heading: 'Clareza e contexto', body: 'A edição procura preservar nuances, explicar termos e deixar claro o que é observação, interpretação ou opinião.' }, { heading: 'Autoria identificada', body: 'Os textos devem ter autoria e editoria identificadas. Edição e revisão podem propor ajustes sem apagar a responsabilidade de quem assina.' }, { heading: 'Correções', body: 'Quando um erro é identificado, a correção deve ser feita com rapidez e de forma proporcional. Alterações relevantes precisam explicar o que mudou.' }, { heading: 'Independência e cuidado', body: 'A escolha de pauta considera relevância, respeito às pessoas mencionadas e transparência sobre os limites do texto.' }], seo_title: 'Política editorial', seo_description: 'Critérios editoriais, autoria e correções do Pé de Prosa.' },
+  { slug: 'privacidade', title: 'Privacidade', summary: 'Como o portal trata dados de navegação e informações pessoais.', sections: [{ heading: 'Leitura sem cadastro', body: 'O acervo público pode ser consultado sem criar uma conta. O portal não oferece comentários nem publicidade comportamental.' }, { heading: 'Dados técnicos', body: 'Provedores de infraestrutura podem processar registros técnicos para entregar as páginas, prevenir abuso e manter a segurança do serviço.' }, { heading: 'Links externos', body: 'Links para outros sites são destinos externos; as práticas desses serviços são responsabilidade de cada operador.' }], seo_title: 'Privacidade', seo_description: 'Informações sobre privacidade e navegação no Pé de Prosa.' }
+]
 
 const corsHeaders = (origin) => ({
   'Access-Control-Allow-Origin': origin,
@@ -15,6 +28,31 @@ const corsHeaders = (origin) => ({
 const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'X-Content-Type-Options': 'nosniff', ...headers } })
 const slugify = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 100)
 const parseJson = (value, fallback = []) => { try { return JSON.parse(value || 'null') ?? fallback } catch { return fallback } }
+const cleanText = (value, max = 500) => String(value || '').trim().slice(0, max)
+const safeSlug = (value) => slugify(String(value || '')).slice(0, 80)
+const safeHttpsUrl = (value) => { const raw = cleanText(value, 500); if (!raw) return ''; try { const url = new URL(raw); return url.protocol === 'https:' ? url.toString() : '' } catch { return '' } }
+const isValidStatus = (value) => ['draft','review','returned','approved','published','unpublished','archived'].includes(value)
+
+async function settingsFrom(db) {
+  const row = await db.prepare("SELECT settings_json FROM site_settings WHERE id='portal'").first()
+  return { ...defaultSettings, ...parseJson(row?.settings_json, {}), theme: { ...defaultSettings.theme, ...(parseJson(row?.settings_json, {}).theme || {}) }, social: { ...defaultSettings.social, ...(parseJson(row?.settings_json, {}).social || {}) } }
+}
+
+async function pagesFrom(db) {
+  const result = await db.prepare('SELECT slug,title,summary,sections_json,seo_title,seo_description,updated_at FROM portal_pages ORDER BY title').all()
+  const edited = new Map((result.results || []).map(row => [row.slug, { ...row, sections: parseJson(row.sections_json, []) }]))
+  return defaultPages.map(page => edited.get(page.slug) || page)
+}
+
+async function saveTags(db, articleId, tags) {
+  await db.prepare('DELETE FROM article_tags WHERE article_id=?').bind(articleId).run()
+  for (const tagName of [...new Set((Array.isArray(tags) ? tags : []).map(value => cleanText(value, 40)).filter(Boolean))].slice(0, 12)) {
+    const tagId = safeSlug(tagName)
+    if (!tagId) continue
+    await db.prepare('INSERT OR IGNORE INTO tags (id,name,slug) VALUES (?,?,?)').bind(tagId, tagName, tagId).run()
+    await db.prepare('INSERT OR IGNORE INTO article_tags (article_id,tag_id) VALUES (?,?)').bind(articleId, tagId).run()
+  }
+}
 
 async function sign(value, secret) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
@@ -22,11 +60,20 @@ async function sign(value, secret) {
   return btoa(String.fromCharCode(...signature)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
 }
 
+async function constantTimeEqual(left, right) {
+  const encoder = new TextEncoder()
+  const [a, b] = await Promise.all([left, right].map(value => crypto.subtle.digest('SHA-256', encoder.encode(String(value || '')))))
+  const x = new Uint8Array(a); const y = new Uint8Array(b)
+  let mismatch = 0
+  for (let i = 0; i < x.length; i++) mismatch |= x[i] ^ y[i]
+  return mismatch === 0
+}
+
 async function sessionFrom(request, env) {
   const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '')
   if (!token || !env.DEMO_SECRET) return null
   const [payload, signature] = token.split('.')
-  if (!payload || !signature || await sign(payload, env.DEMO_SECRET) !== signature) return null
+  if (!payload || !signature || !await constantTimeEqual(await sign(payload, env.DEMO_SECRET), signature)) return null
   try {
     const encoded = payload.replace(/-/g, '+').replace(/_/g, '/')
     const session = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')))
@@ -51,7 +98,7 @@ async function storyFromRow(db, row) {
     author_bio: row.author_bio || '',
     author_role: row.author_role || 'Repórter',
     author_location: row.author_location || 'Brasil',
-    alt_text: row.alt_text || `Ilustração editorial sobre ${row.category_name || 'vida brasileira'}`
+    alt_text: row.alt_text || `Fotografia editorial relacionada à matéria: ${row.title}`
   }
 }
 
@@ -82,6 +129,116 @@ export default {
       if (parts[0] === 'health') {
         const row = await db.prepare("SELECT COUNT(*) AS total FROM articles WHERE status='published'").first()
         return json({ ok: true, publishedArticles: row?.total || 0 }, 200, { 'Cache-Control': 'no-store', ...cors })
+      }
+
+      if (parts[0] === 'site' && parts.length === 1 && request.method === 'GET') return json(await settingsFrom(db), 200, cache)
+      if (parts[0] === 'pages' && parts.length === 2 && request.method === 'GET') {
+        const pages = await pagesFrom(db)
+        const page = pages.find(item => item.slug === parts[1])
+        return page ? json(page, 200, cache) : json({ error: 'Not found' }, 404, cache)
+      }
+
+      if (parts[0] === 'admin') {
+        if (env.ADMIN_ENABLED !== 'true' || !env.ADMIN_USERNAME || !env.ADMIN_PASSWORD || !env.DEMO_SECRET) return json({ error: 'Not found' }, 404, cors)
+        if (parts[1] === 'login' && request.method === 'POST') {
+          const ip = request.headers.get('CF-Connecting-IP') || 'unknown'
+          const ipHash = await sign(ip, env.DEMO_SECRET)
+          const now = Date.now()
+          const attemptCount = await db.prepare('SELECT COUNT(*) AS total FROM admin_login_attempts WHERE ip_hash=? AND attempted_at>?').bind(ipHash, now - 15 * 60 * 1000).first()
+          if (Number(attemptCount?.total || 0) >= 8) return json({ error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }, 429, { 'Cache-Control': 'no-store', ...cors })
+          let body = {}
+          try { body = await request.json() } catch { return json({ error: 'Invalid request' }, 400, cors) }
+          const validUser = await constantTimeEqual(body.username, env.ADMIN_USERNAME)
+          const validPassword = await constantTimeEqual(body.password, env.ADMIN_PASSWORD)
+          if (!validUser || !validPassword) {
+            await db.prepare('INSERT INTO admin_login_attempts (ip_hash,attempted_at) VALUES (?,?)').bind(ipHash, now).run()
+            return json({ error: 'Usuário ou senha inválidos.' }, 401, { 'Cache-Control': 'no-store', ...cors })
+          }
+          await db.prepare('DELETE FROM admin_login_attempts WHERE ip_hash=?').bind(ipHash).run()
+          const session = { username: cleanText(env.ADMIN_USERNAME, 120), role: 'admin', name: cleanText(env.ADMIN_DISPLAY_NAME || 'Administrador', 120), exp: now + 1000 * 60 * 60 * 8 }
+          const payload = btoa(JSON.stringify(session)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+          return json({ token: `${payload}.${await sign(payload, env.DEMO_SECRET)}`, name: session.name, role: session.role, exp: session.exp }, 200, { 'Cache-Control': 'no-store', ...cors })
+        }
+
+        const session = await sessionFrom(request, env)
+        if (!session || session.role !== 'admin') return json({ error: 'Unauthorized' }, 401, { 'Cache-Control': 'no-store', ...cors })
+        const noStore = { 'Cache-Control': 'no-store', ...cors }
+        if (parts[1] === 'logout') return json({ ok: true }, 200, noStore)
+        if (parts[1] === 'dashboard' && request.method === 'GET') {
+          const counts = await db.prepare("SELECT status,COUNT(*) AS total FROM articles GROUP BY status").all()
+          const recent = await db.prepare(`${storySelect} ORDER BY a.updated_at DESC LIMIT 8`).all()
+          return json({ counts: counts.results || [], recent: await Promise.all((recent.results || []).map(row => storyFromRow(db, row))) }, 200, noStore)
+        }
+        if (parts[1] === 'settings' && parts.length === 2) {
+          if (request.method === 'GET') return json(await settingsFrom(db), 200, noStore)
+          let body = {}; try { body = await request.json() } catch { return json({ error: 'Invalid request' }, 400, cors) }
+          const data = { ...defaultSettings, ...body, theme: { ...defaultSettings.theme, ...(body.theme || {}) }, social: { ...defaultSettings.social, ...(body.social || {}) } }
+          for (const key of ['siteName','tagline','mastheadTopLine','footerDescription','footerSubline','homepageTitle','homepageDescription','aboutTitle','aboutDescription']) data[key] = cleanText(data[key], 240)
+          for (const key of ['paper','ink','accent','forest']) if (!/^#[0-9a-f]{6}$/i.test(data.theme[key])) data.theme[key] = defaultSettings.theme[key]
+          for (const key of ['instagram','facebook','youtube']) data.social[key] = safeHttpsUrl(data.social[key])
+          await db.prepare("INSERT INTO site_settings (id,settings_json,updated_at) VALUES ('portal',?,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET settings_json=excluded.settings_json,updated_at=CURRENT_TIMESTAMP").bind(JSON.stringify(data)).run()
+          return json({ ok: true, settings: data }, 200, noStore)
+        }
+        if (parts[1] === 'pages' && parts.length === 2) {
+          if (request.method === 'GET') return json({ pages: await pagesFrom(db) }, 200, noStore)
+          let body = {}; try { body = await request.json() } catch { return json({ error: 'Invalid request' }, 400, cors) }
+          const slug = safeSlug(body.slug)
+          if (!['sobre','politica-editorial','privacidade'].includes(slug)) return json({ error: 'Página não permitida.' }, 400, cors)
+          const title = cleanText(body.title, 160); const summary = cleanText(body.summary, 400)
+          const sections = (Array.isArray(body.sections) ? body.sections : []).slice(0, 20).map(item => ({ heading: cleanText(item.heading, 160), body: cleanText(item.body, 4000) })).filter(item => item.heading || item.body)
+          await db.prepare('INSERT INTO portal_pages (slug,title,summary,sections_json,seo_title,seo_description,updated_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP) ON CONFLICT(slug) DO UPDATE SET title=excluded.title,summary=excluded.summary,sections_json=excluded.sections_json,seo_title=excluded.seo_title,seo_description=excluded.seo_description,updated_at=CURRENT_TIMESTAMP').bind(slug,title,summary,JSON.stringify(sections),cleanText(body.seo_title || title, 160),cleanText(body.seo_description || summary, 300)).run()
+          return json({ ok: true }, 200, noStore)
+        }
+        if (parts[1] === 'categories' && parts.length === 2) {
+          if (request.method === 'GET') { const result = await db.prepare('SELECT c.*,COUNT(a.id) AS article_count FROM categories c LEFT JOIN articles a ON a.category_id=c.id AND a.status=\'published\' GROUP BY c.id ORDER BY c.name').all(); return json({ categories: result.results || [] }, 200, noStore) }
+          let body = {}; try { body = await request.json() } catch { return json({ error: 'Invalid request' }, 400, cors) }
+          const name = cleanText(body.name, 80); const slug = safeSlug(body.slug || name); const id = cleanText(body.id || slug, 80)
+          if (name.length < 2 || !slug || !id) return json({ error: 'Informe nome e endereço da editoria.' }, 400, cors)
+          await db.prepare('INSERT INTO categories (id,name,slug,description,color) VALUES (?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,slug=excluded.slug,description=excluded.description,color=excluded.color').bind(id,name,slug,cleanText(body.description, 300),cleanText(body.color || 'forest', 30)).run()
+          return json({ ok: true }, 200, noStore)
+        }
+        if (parts[1] === 'authors' && parts.length === 2) {
+          if (request.method === 'GET') { const result = await db.prepare('SELECT au.*,COUNT(a.id) AS article_count FROM authors au LEFT JOIN articles a ON a.author_id=au.id AND a.status=\'published\' GROUP BY au.id ORDER BY au.name').all(); return json({ authors: result.results || [] }, 200, noStore) }
+          let body = {}; try { body = await request.json() } catch { return json({ error: 'Invalid request' }, 400, cors) }
+          const name = cleanText(body.name, 100); const slug = safeSlug(body.slug || name); const id = cleanText(body.id || slug, 80)
+          if (name.length < 2 || !slug || !id) return json({ error: 'Informe nome e endereço do perfil.' }, 400, cors)
+          await db.prepare('INSERT INTO authors (id,name,slug,bio,role,location,avatar) VALUES (?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,slug=excluded.slug,bio=excluded.bio,role=excluded.role,location=excluded.location,avatar=excluded.avatar').bind(id,name,slug,cleanText(body.bio, 800),cleanText(body.role || 'Colunista', 80),cleanText(body.location || 'Brasil', 100),safeHttpsUrl(body.avatar)).run()
+          return json({ ok: true }, 200, noStore)
+        }
+        if (parts[1] === 'articles' && parts.length <= 3) {
+          if (request.method === 'GET') { const result = await db.prepare(`${storySelect} ORDER BY a.updated_at DESC`).all(); return json({ articles: await Promise.all((result.results || []).map(row => storyFromRow(db, row))) }, 200, noStore) }
+          let body = {}; try { body = await request.json() } catch { return json({ error: 'Invalid request' }, 400, cors) }
+          const id = parts[2] || cleanText(body.id, 80) || crypto.randomUUID()
+          const current = await db.prepare('SELECT * FROM articles WHERE id=?').bind(id).first()
+          const title = cleanText(body.title, 160); const excerpt = cleanText(body.excerpt, 500)
+          const paragraphSource = Array.isArray(body.body) ? body.body : String(body.body || '').split(/\n\s*\n/)
+          const paragraphs = paragraphSource.map(value => cleanText(value, 6000)).filter(Boolean).slice(0, 80)
+          const category = cleanText(body.category_id || body.category, 80); const author = cleanText(body.author_id || body.author, 80)
+          const status = isValidStatus(body.status) ? body.status : (current?.status || 'draft')
+          if (title.length < 8 || excerpt.length < 20 || paragraphs.length < 1) return json({ error: 'Preencha título, resumo e texto.' }, 400, cors)
+          if (!await db.prepare('SELECT id FROM categories WHERE id=?').bind(category).first()) return json({ error: 'Editoria inválida.' }, 400, cors)
+          if (!await db.prepare('SELECT id FROM authors WHERE id=?').bind(author).first()) return json({ error: 'Autoria inválida.' }, 400, cors)
+          let slug = safeSlug(body.slug || current?.slug || title)
+          if (!slug) slug = crypto.randomUUID().slice(0, 8)
+          const conflict = await db.prepare('SELECT id FROM articles WHERE slug=? AND id<>?').bind(slug,id).first()
+          if (conflict) slug = `${slug}-${id.slice(0, 6)}`
+          const rawCover = cleanText(body.cover, 500)
+          const cover = safeHttpsUrl(rawCover) || (rawCover.startsWith('/uploads/') && !rawCover.includes('..') ? rawCover : '')
+          const tags = Array.isArray(body.tags) ? body.tags : String(body.tags || '').split(',')
+          const tagNames = tags.map(tag => cleanText(typeof tag === 'string' ? tag : tag.name, 40)).filter(Boolean).slice(0, 12)
+          const publishedAt = status === 'published' ? cleanText(body.published_at || current?.published_at || new Date().toISOString(), 40) : (body.published_at || current?.published_at || null)
+          const readingMinutes = Math.max(1, Math.ceil(paragraphs.join(' ').split(/\s+/).filter(Boolean).length / 200))
+          const values = [title,slug,excerpt,JSON.stringify(paragraphs),category,author,cover,cleanText(body.alt_text, 300),status,body.featured ? 1 : 0,readingMinutes,publishedAt,cleanText(body.seo_title || title, 160),cleanText(body.seo_description || excerpt, 300),id]
+          if (current) {
+            await db.prepare('UPDATE articles SET title=?,slug=?,excerpt=?,body_json=?,category_id=?,author_id=?,cover=?,alt_text=?,status=?,featured=?,reading_minutes=?,published_at=?,updated_at=CURRENT_TIMESTAMP,seo_title=?,seo_description=? WHERE id=?').bind(...values).run()
+          } else {
+            await db.prepare('INSERT INTO articles (title,slug,excerpt,body_json,category_id,author_id,cover,alt_text,status,featured,reading_minutes,published_at,updated_at,seo_title,seo_description,id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,?,?,?)').bind(...values).run()
+          }
+          await saveTags(db,id,tagNames)
+          await createEvent(db,id,session,current ? 'Publicação atualizada pelo administrador' : 'Publicação criada pelo administrador',status === 'published' ? 'Alteração publicada.' : 'Alteração salva como rascunho.')
+          return json({ ok: true, id, slug, status }, current ? 200 : 201, noStore)
+        }
+        return json({ error: 'Not found' }, 404, cors)
       }
 
       if (parts[0] === 'editor') {

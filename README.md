@@ -1,117 +1,81 @@
 # Pé de Prosa
 
-Portal editorial demonstrativo feito com Nuxt 4, TypeScript, Cloudflare D1 e Cloudflare Workers. O site público apresenta o acervo em modo de leitura; a área editorial completa é habilitada somente na execução local.
+Portal editorial desenvolvido com Nuxt 4, Cloudflare Workers e Cloudflare D1. A experiência pública é renderizada no servidor e consulta o acervo e as configurações do portal pela API. O painel administrativo permite editar publicações, editorias, perfis de autoria, páginas institucionais e identidade visual.
 
-## O que está incluído
+## O portal
 
-- Página inicial editorial, editorias, busca textual, assuntos, paginação, perfis de autoria e páginas de artigos.
-- 42 textos de autoria fictícia distribuídos por seis editorias, com 37 no catálogo público e exemplos de pauta em diferentes estados editoriais.
-- Área local de redação com perfis de autor, revisor e editor, histórico de eventos, edição de rascunhos, revisão, publicação e arquivamento.
-- API em Cloudflare Worker com Cloudflare D1; a API pública permite somente leitura quando o painel editorial está desativado.
-- Sitemap, RSS, robots.txt, metadados por página, URLs legíveis, controles de cache e política de segurança de conteúdo.
-- Ilustrações editoriais em PNG com fundo transparente, layout responsivo e suporte a teclado.
+- Página inicial editorial com matéria principal, destaques, editorias e acervo recente.
+- Busca, paginação, matérias, assuntos, editorias e perfis de autoria.
+- Layout responsivo com fotografias editoriais, tipografia de publicação e navegação acessível.
+- Metadados por conteúdo, sitemap, RSS, robots.txt e cabeçalhos de segurança.
+- Painel em `/painel`, com autenticação administrativa, limite de tentativas e sessão assinada de oito horas.
+- Conteúdo e configurações públicos lidos da API em tempo de execução, para que mudanças no D1 apareçam no portal sem reconstruir o front-end.
 
-Este repositório é um **projeto de portfólio demonstrativo**. O nome, os autores e o conteúdo são fictícios; não representam uma redação em operação, apuração real ou resultados comerciais.
+O acervo inicial é composto por textos editoriais do projeto e autores fictícios. Eles não devem ser apresentados como reportagens apuradas ou assinadas por pessoas reais. A identidade visual e o painel podem ser usados como base para uma publicação em operação, com revisão editorial e substituição dos dados fictícios.
 
 ## Requisitos
 
-- Node.js 22.12 ou superior.
-- npm.
-- Para executar a API local: Wrangler e SQLite local, instalados pelas dependências do projeto.
-- Para publicar a API: uma conta Cloudflare com acesso a D1 e Workers. Para hospedar o site: a conta Netlify conectada ao repositório.
+- Node.js 22.12 ou superior e npm.
+- Cloudflare D1 e Workers para a API e o painel de produção.
+- Netlify para executar o Nuxt SSR; a publicação precisa compilar a partir do repositório para incluir as funções Nitro.
 
-## Iniciar a demonstração local
-
-1. Instale as dependências:
-
-   ```bash
-   npm install
-   ```
-
-2. Copie `.env.example` para `.env`. O exemplo aponta para o Worker local e habilita a área editorial local.
-
-   Antes de iniciar o Worker, crie `.dev.vars` na raiz com os valores locais de `DEMO_SECRET`, `AUTHOR_PASSWORD`, `REVIEWER_PASSWORD` e `EDITOR_PASSWORD`. Use valores aleatórios próprios. Esse arquivo fica fora do Git; não publique nem reutilize esses segredos em produção.
-
-3. Crie o banco local e carregue os dados de exemplo:
-
-   ```bash
-   npm run db:local
-   npm run db:seed:local
-   ```
-
-   `db:seed:local` recria `cloudflare/demo-seed.sql` e substitui o conteúdo do banco local pelos dados fictícios do repositório.
-
-4. Em um terminal, inicie a API local:
-
-   ```bash
-   npm run dev:api
-   ```
-
-5. Em outro terminal, inicie o portal:
-
-   ```bash
-   npm run dev
-   ```
-
-   Abra `http://localhost:3000`.
-
-### Acessos editoriais locais
-
-Use os nomes de usuário abaixo com as senhas locais definidas em `.dev.vars`:
-
-| Usuário | Papel | Permissões demonstradas |
-| --- | --- | --- |
-| `autor` | Autor | Criar, editar e enviar os próprios rascunhos para revisão |
-| `revisor` | Revisor | Aprovar ou devolver textos em revisão |
-| `editor` | Editor | Publicar textos aprovados e arquivar textos publicados |
-
-As contas são fictícias e servem apenas para a demonstração local. As senhas não são armazenadas no código nem no repositório.
-
-## Restaurar o banco local
-
-Para repor schema e conteúdo de exemplo, pare o Wrangler local, remova o banco local criado em `.wrangler/state/v3/d1/` e execute novamente:
+## Desenvolvimento local
 
 ```bash
+npm install
 npm run db:local
 npm run db:seed:local
+npm run dev:api
 ```
 
-O banco local é separado da conta Cloudflare. Esses comandos não apagam nem alteram bancos remotos.
+Em outro terminal:
 
-## Configuração remota
+```bash
+npm run dev
+```
 
-1. Crie um banco D1 chamado `pe-de-prosa` e aplique a migration de schema `cloudflare/migrations/0001_schema.sql`.
-2. Gere `cloudflare/demo-seed.sql` com `node scripts/seed-data.mjs` e aplique a carga inicial uma única vez. A carga de demonstração fica fora da pasta de migrations para não ser reaplicada como uma mudança de schema.
-3. Configure o binding D1 `DB` no Worker `pedeprosa-api` e publique `cloudflare/worker.mjs`.
-4. Mantenha `EDITORIAL_DEMO=false` no Worker público. O código do painel local não recebe uma sessão editorial e a API não expõe rotas de edição.
-5. Configure `NUXT_PUBLIC_API_BASE` na Netlify com a URL HTTPS do Worker terminada em `/api`. Essa variável permite que a renderização do portal use o D1 e que o navegador leia a API pública.
-6. O `netlify.toml` já permite a origem `https://pedeprosa-api.dona-de-ouro-demo.workers.dev` em `connect-src`; mantenha-a alinhada ao subdomínio ativo do Worker.
-7. Conecte o repositório à Netlify com `npm run build` e diretório publicado `.output/public`, definindo `NUXT_PUBLIC_API_BASE=https://pedeprosa-api.dona-de-ouro-demo.workers.dev/api` e `NUXT_PUBLIC_EDITORIAL_DEMO=false`.
+Abra `http://localhost:3000`. Para a API local, o arquivo `.dev.vars` deve conter segredos de demonstração locais. Não reutilize esses valores na produção nem os envie ao Git.
 
-O domínio público pretendido é `https://pedeprosa.netlify.app`. O painel editorial completo não é publicado. A publicação inicial deve ser feita somente depois de o código, a API, o binding e as variáveis de produção estarem configurados.
+A antiga rota `/redacao` permanece como demonstração local do fluxo editorial. O painel administrativo de produção fica em `/painel` e usa credenciais separadas.
+
+## Publicação da API e do painel
+
+1. Crie ou confirme o banco D1 `pe-de-prosa` e o binding `DB` do Worker `pedeprosa-api`.
+2. Aplique em sequência `cloudflare/migrations/0001_schema.sql`, `0002_portal_cms.sql` e `0003_editorial_expansion.sql`. A migration 0003 adiciona 12 textos editoriais e ajusta descrições de imagem antigas. Ela usa `INSERT OR IGNORE`, portanto pode ser reaplicada sem duplicar os novos registros.
+3. Configure no Worker, como secrets/variáveis de ambiente, `ADMIN_ENABLED=true`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_DISPLAY_NAME` e `DEMO_SECRET`. Use uma senha forte e um segredo aleatório longo. Nunca grave esses valores no repositório.
+4. Mantenha `EDITORIAL_DEMO=false` na API pública. A demonstração da rota `/redacao` não deve ser habilitada em produção.
+5. Configure a origem do site em `cloudflare/worker.mjs` se o domínio público mudar. A API aceita chamadas do domínio Netlify atual e do ambiente local.
+6. Configure `NUXT_PUBLIC_API_BASE=https://pedeprosa-api.dona-de-ouro-demo.workers.dev/api` na Netlify.
+7. Conecte o repositório à Netlify e use `npm run build`. O módulo Nuxt da Netlify configura as funções Nitro necessárias para SSR e rotas de servidor.
+8. Acesse `/painel` e entre com as credenciais administrativas configuradas no Worker.
+
+## Imagens de capa
+
+O painel aceita imagens por URL HTTPS. Também reconhece caminhos em `/uploads/`, mas o armazenamento e o envio de arquivos ainda dependem da configuração de um bucket de objetos e da rota de upload. Até essa etapa, use URLs HTTPS de imagens que você tenha direito de publicar.
 
 ## Comandos úteis
 
 ```bash
-npm run build       # gera o portal estático e a CSP com hashes para os scripts inline do Nuxt
-npm run typecheck   # verifica os tipos Vue e TypeScript
-npm run preview     # visualiza a compilação local
-npm run dev:api     # inicia o Worker e o D1 locais
-npm run db:local    # cria o schema local
-npm run db:seed:local # recria os dados fictícios locais
+npm run build                    # compila a aplicação Nuxt SSR
+npm run preview                  # abre a compilação local
+npm run typecheck                # verifica tipos Vue e TypeScript
+npm run db:generate:expansion    # regenera a migration do acervo adicional
+npm run dev:api                  # inicia Worker e D1 locais
+npm run db:local                 # cria o schema local
+npm run db:seed:local            # recarrega a demonstração local
 ```
 
 ## Estrutura
 
 ```text
-app.vue                    casca da publicação
+app.vue                    casca do portal e configurações de tema
 assets/css/main.css        identidade visual e estilos responsivos
-components/                cabeçalho, rodapé, cartões e paginação
-data/                      conteúdo fictício e catálogo editorial
-pages/                     páginas públicas e redação local
-cloudflare/migrations/     alterações versionadas do schema D1
-cloudflare/demo-seed.sql   carga restaurável de conteúdo fictício
-cloudflare/worker.mjs      API de leitura e fluxo editorial local
-server/routes/             sitemap e feed RSS
-scripts/                   geração restaurável dos dados SQL
+components/                cabeçalho, rodapé e componentes editoriais
+composables/               dados e acesso à API
+pages/                     páginas públicas, painel e demonstração local
+cloudflare/migrations/     schema e mudanças versionadas do D1
+cloudflare/worker.mjs      API pública e rotas administrativas
+server/plugins/            cabeçalhos CSP e segurança para SSR
+server/routes/             sitemap, RSS e robots.txt
+scripts/                   geração dos dados e migrations
 ```

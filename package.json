@@ -2,14 +2,17 @@
   "name": "pe-de-prosa",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "nuxt dev",
-    "build": "nuxt generate && node scripts/generate-csp-headers.mjs",
+    "build": "nuxt build",
     "typecheck": "nuxt typecheck",
     "preview": "nuxt preview",
     "db:local": "wrangler d1 execute pe-de-prosa --local --config wrangler.local.toml --file=cloudflare/migrations/0001_schema.sql",
     "db:seed:local": "node scripts/seed-data.mjs && wrangler d1 execute pe-de-prosa --local --config wrangler.local.toml --file=cloudflare/demo-seed.sql",
+    "db:generate:expansion": "node scripts/generate-editorial-expansion.mjs",
     "dev:api": "wrangler dev --config wrangler.local.toml --port 8787"
   },
   "dependencies": {

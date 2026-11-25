@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { localTags } from '~/composables/usePortal'
-const tags = localTags.filter(tag => tag.article_count > 0).sort((a,b) => b.article_count-a.article_count || a.name.localeCompare(b.name,'pt-BR'))
+import { localTags, portalFetch } from '~/composables/usePortal'
+const data = await portalFetch('/tags', { tags: localTags }) as any
+const tags = (data.tags || []).filter((tag:any) => tag.article_count > 0).sort((a:any,b:any) => b.article_count-a.article_count || a.name.localeCompare(b.name,'pt-BR'))
 useSeoMeta({ title: 'Assuntos', description: 'Explore os principais assuntos e temas do acervo do Pé de Prosa.' })
 </script>
 

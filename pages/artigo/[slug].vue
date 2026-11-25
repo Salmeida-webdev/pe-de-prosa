@@ -4,8 +4,8 @@ const route=useRoute();const slug=computed(()=>String(route.params.slug));const 
 if(!article) throw createError({statusCode:404,statusMessage:'Texto não encontrado'})
 const story=article as any
 const related=localFeed({category:story.category_slug,pageSize:3}).articles.filter((item:any)=>item.slug!==story.slug).slice(0,3)
-const coverByCategory:Record<string,string>={cidade:'/images/casas-brasileiras.png',cultura:'/images/livros-leitura.png',cotidiano:'/images/caderno-receitas.png',ideias:'/images/livros-leitura.png',trabalho:'/images/trabalho-entrega.png',natureza:'/images/brand-jabuticaba.png'}
-useSeoMeta({title:story.title,description:story.seo_description||story.excerpt,ogTitle:story.title,ogDescription:story.excerpt,ogType:'article',ogImage:`https://pedeprosa.netlify.app${coverByCategory[story.category]||coverByCategory.cultura}`,twitterImage:`https://pedeprosa.netlify.app${coverByCategory[story.category]||coverByCategory.cultura}`})
+const socialImage=story.cover?.startsWith('https://')?story.cover:'https://pedeprosa.netlify.app/images/editorial-contact-sheet.webp'
+useSeoMeta({title:story.title,description:story.seo_description||story.excerpt,ogTitle:story.title,ogDescription:story.excerpt,ogType:'article',ogImage:socialImage,twitterImage:socialImage})
 useHead({link:[{rel:'canonical',href:`https://pedeprosa.netlify.app/artigo/${story.slug}`}],meta:[{property:'article:published_time',content:story.published_at},{property:'article:author',content:story.author_name}]})
 const copy=async()=>{try{await navigator.clipboard.writeText(window.location.href);copied.value=true;setTimeout(()=>copied.value=false,1800)}catch{}}
 const copied=ref(false)
