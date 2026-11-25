@@ -66,7 +66,8 @@ async function loadAll() {
     authors.value = authorData.authors || []
     Object.assign(settings, settingData)
     pages.value = pageData.pages || Object.values(defaultPortalPages)
-    if (!pageForm.title && pages.value.length) choosePage(pages.value[0].slug)
+    const firstPage = pages.value[0]
+    if (!pageForm.title && firstPage) choosePage(firstPage.slug)
   } catch (cause) { setError(cause) } finally { busy.value = false }
 }
 

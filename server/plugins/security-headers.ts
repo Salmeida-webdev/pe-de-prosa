@@ -28,6 +28,7 @@ export default defineNitroPlugin((nitroApp) => {
     const nonce = createNonce()
     event.context.cspNonce = nonce
     setResponseHeader(event, 'Content-Security-Policy', cspFor(nonce))
+    setResponseHeader(event, 'Cache-Control', 'no-cache, must-revalidate')
     setResponseHeader(event, 'X-Content-Type-Options', 'nosniff')
     setResponseHeader(event, 'Referrer-Policy', 'strict-origin-when-cross-origin')
     setResponseHeader(event, 'X-Frame-Options', 'DENY')
