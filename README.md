@@ -86,14 +86,14 @@ O banco local é separado da conta Cloudflare. Esses comandos não apagam nem al
 4. Mantenha `EDITORIAL_DEMO=false` no Worker público. O código do painel local não recebe uma sessão editorial e a API não expõe rotas de edição.
 5. Configure `NUXT_PUBLIC_API_BASE` na Netlify com a URL HTTPS do Worker terminada em `/api`. Essa variável permite que a renderização do portal use o D1 e que o navegador leia a API pública.
 6. O `netlify.toml` já permite a origem `https://pedeprosa-api.dona-de-ouro-demo.workers.dev` em `connect-src`; mantenha-a alinhada ao subdomínio ativo do Worker.
-7. Conecte o repositório à Netlify com `npm run build` e diretório publicado `dist`, definindo `NUXT_PUBLIC_API_BASE=https://pedeprosa-api.dona-de-ouro-demo.workers.dev/api` e `NUXT_PUBLIC_EDITORIAL_DEMO=false`.
+7. Conecte o repositório à Netlify com `npm run build` e diretório publicado `.output/public`, definindo `NUXT_PUBLIC_API_BASE=https://pedeprosa-api.dona-de-ouro-demo.workers.dev/api` e `NUXT_PUBLIC_EDITORIAL_DEMO=false`.
 
 O domínio público pretendido é `https://pedeprosa.netlify.app`. O painel editorial completo não é publicado. A publicação inicial deve ser feita somente depois de o código, a API, o binding e as variáveis de produção estarem configurados.
 
 ## Comandos úteis
 
 ```bash
-npm run build       # compila o portal
+npm run build       # gera o portal estático e a CSP com hashes para os scripts inline do Nuxt
 npm run typecheck   # verifica os tipos Vue e TypeScript
 npm run preview     # visualiza a compilação local
 npm run dev:api     # inicia o Worker e o D1 locais

@@ -29,7 +29,10 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    prerender: { routes: ['/sitemap.xml', '/robots.txt', '/feed.xml'] }
+    prerender: {
+      routes: ['/sitemap.xml', '/robots.txt', '/feed.xml'],
+      ignore: process.env.NUXT_PUBLIC_EDITORIAL_DEMO === 'true' ? [] : ['/redacao']
+    }
   },
   typescript: { strict: true, typeCheck: false }
 })
