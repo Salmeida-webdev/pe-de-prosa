@@ -33,7 +33,11 @@ export const localStories: Story[] = [...seed.articles, ...additionalStories].ma
   return { ...story, alt_text: String(('alt' in story ? story.alt : '') || `Fotografia editorial relacionada à matéria: ${story.title}`), category_name: category?.name, category_slug: category?.slug, author_name: author?.name, author_slug: author?.slug, reading_minutes: Math.max(1, Math.ceil(words / 200)), published_at: story.date }
 })
 
-export const localCategories = categories.map(category => ({ ...category, article_count: localStories.filter(story => story.category === category.id && story.status === 'published').length }))
+// Keep the offline fallback in the same stable order returned by the API.
+// This prevents a hydration reorder from pairing a category label with another slug.
+export const localCategories = categories
+  .map(category => ({ ...category, article_count: localStories.filter(story => story.category === category.id && story.status === 'published').length }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 export const localAuthors = authors.map(author => ({ ...author, article_count: localStories.filter(story => story.author === author.id && story.status === 'published').length }))
 export const localTags = seed.tags.map(name => ({ name, slug: tagSlug(name), article_count: localStories.filter(story => story.status === 'published' && story.tags.includes(name)).length }))
 
