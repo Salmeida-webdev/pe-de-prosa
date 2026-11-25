@@ -37,12 +37,21 @@ const topicGroups = [
   { keywords: ['sociedade', 'ideias', 'comunidade', 'reunião', 'associação', 'saúde', 'escola', 'educação', 'cuidado', 'estudante', 'professor'], photoIds: [14, 9, 8, 17, 4, 3] }
 ]
 
+// Keep the lead image editorially faithful. Topic pools are intentionally broad
+// to add variety, so the most prominent stories use a deliberate photo choice.
+const storyPhotoOverrides: Record<string, number> = {
+  'cidade-se-le-pelas-calcadas': 0
+}
+
 const selectedPhoto = computed(() => {
   const subject = normalize(`${props.article.title || ''} ${props.article.slug || ''} ${props.article.excerpt || ''} ${props.article.category || ''} ${props.article.category_name || ''}`)
   const scores = topicGroups.map(group => group.keywords.reduce((score, keyword) => score + (subject.includes(normalize(keyword)) ? keyword.length : 0), 0))
   const bestScore = Math.max(...scores)
   const matchingGroups = topicGroups.flatMap((group, index) => scores[index] === bestScore && bestScore > 0 ? [group] : [])
   const key = props.article.slug || props.article.id || props.article.title || ''
+  if (props.article.slug && storyPhotoOverrides[props.article.slug] !== undefined) {
+    return photos[storyPhotoOverrides[props.article.slug]!] || photos[0]!
+  }
   const hash = [...key].reduce((total, character) => (total * 31 + character.charCodeAt(0)) >>> 0, 7)
   const pool = matchingGroups.length ? matchingGroups[hash % matchingGroups.length]?.photoIds || [] : photos.map((_, index) => index)
   const photoIndex = pool[hash % pool.length] ?? 0
