@@ -4,7 +4,7 @@ const route=useRoute();const slug=computed(()=>String(route.params.slug));const 
 if(!article) throw createError({statusCode:404,statusMessage:'Texto não encontrado'})
 const story=article as any
 const related=localFeed({category:story.category_slug,pageSize:3}).articles.filter((item:any)=>item.slug!==story.slug).slice(0,3)
-const socialImage=story.cover?.startsWith('https://')?story.cover:'https://pedeprosa.netlify.app/images/editorial-contact-sheet.webp'
+const socialImage=story.cover?.startsWith('https://')?story.cover:'https://pedeprosa.netlify.app/images/editorial/street-neighborhood.webp'
 useSeoMeta({title:story.title,description:story.seo_description||story.excerpt,ogTitle:story.title,ogDescription:story.excerpt,ogType:'article',ogImage:socialImage,twitterImage:socialImage})
 useHead({link:[{rel:'canonical',href:`https://pedeprosa.netlify.app/artigo/${story.slug}`}],meta:[{property:'article:published_time',content:story.published_at},{property:'article:author',content:story.author_name}]})
 const copy=async()=>{try{await navigator.clipboard.writeText(window.location.href);copied.value=true;setTimeout(()=>copied.value=false,1800)}catch{}}

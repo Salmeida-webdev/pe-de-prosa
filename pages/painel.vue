@@ -218,8 +218,109 @@ useSeoMeta({ title: 'Painel administrativo', robots: 'noindex,nofollow' })
 </style>
 
 <style scoped>
+@media(max-width:1100px){
+  .admin-layout{grid-template-columns:210px minmax(0,1fr)}
+  .admin-sidebar{padding-inline:.75rem}
+  .admin-main{padding-inline:1.1rem}
+  .dashboard-hero{grid-template-columns:minmax(0,1fr) minmax(220px,.8fr);gap:.8rem;padding:1.2rem}
+  .editor-form{grid-template-columns:minmax(0,1fr) 260px;gap:1rem}
+  .recent-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .admin-shell{margin:1rem 0 1.5rem;border-radius:14px}
+  .admin-layout{grid-template-columns:190px minmax(0,1fr)}
+  .admin-main{padding:1rem .9rem 2rem}
+  .dashboard-hero{grid-template-columns:1fr}
+  .hero-stat{justify-content:flex-start;max-width:100%}
+  .editor-form{grid-template-columns:1fr}
+  .editor-side{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .editor-side .form-actions,.cover-preview-card{grid-column:1/-1}
+  .recent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .shortcuts-panel{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .admin-shell{margin:.65rem 0 1rem;border-radius:10px}
+  .admin-layout{display:block;min-height:0}
+  .admin-sidebar{position:relative;top:auto;height:auto;min-height:0;padding:.75rem .75rem .55rem}
+  .admin-wordmark{padding:.1rem .25rem .65rem}
+  .admin-sidebar nav{display:flex;gap:.35rem;overflow-x:auto;padding:.1rem .1rem .55rem;scrollbar-width:thin;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}
+  .admin-sidebar nav button{flex:0 0 auto;min-height:40px;white-space:nowrap;padding:.55rem .7rem;font-size:.68rem}
+  .sidebar-bottom{grid-template-columns:32px minmax(0,1fr) 34px;gap:.5rem;margin-top:.35rem;padding:.55rem .2rem 0}
+  .admin-main{padding:.85rem .7rem 1.4rem}
+  .admin-top{align-items:flex-start;flex-wrap:wrap;gap:.6rem;padding-bottom:.8rem;margin-bottom:.9rem}
+  .admin-top>div:first-child{min-width:0;flex:1}
+  .admin-top h1{font-size:1.45rem;overflow-wrap:anywhere}
+  .admin-top-actions{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:.45rem}
+  .admin-top-actions a,.admin-top-actions button{min-height:40px;padding:.5rem .65rem;font-size:.66rem}
+  .admin-content,.dashboard-content{gap:.8rem}
+  .welcome-row{align-items:flex-start;flex-wrap:wrap;gap:.7rem}
+  .welcome-row h2{font-size:1.3rem}
+  .dashboard-hero{padding:1rem;gap:.9rem}
+  .hero-copy h2{font-size:1.7rem}
+  .hero-copy p{font-size:.76rem}
+  .hero-actions button,.hero-secondary{min-height:42px;padding:.6rem .7rem;font-size:.68rem}
+  .hero-stat{gap:.8rem;padding:.75rem}
+  .stat-orbit{width:78px;height:78px;border-width:5px}
+  .stat-orbit strong{font-size:1.4rem}
+  .hero-stat-copy>span{font-size:.58rem}
+  .hero-stat-copy small{font-size:.62rem}
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+  .metric-card{grid-template-columns:34px minmax(0,1fr) 14px;gap:.5rem;padding:.7rem}
+  .metric-icon{width:32px;height:32px}
+  .metric-copy small{font-size:.62rem}
+  .metric-copy strong{font-size:1.35rem}
+  .metric-copy>span{font-size:.57rem;line-height:1.35}
+  .admin-panel{padding:.85rem;border-radius:9px}
+  .panel-heading{align-items:flex-start;flex-wrap:wrap;gap:.55rem}
+  .panel-heading h2{font-size:1.05rem}
+  .panel-heading p{font-size:.68rem}
+  .panel-heading button,.panel-heading select{min-height:40px}
+  .workflow-track{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .shortcuts-panel{display:block}
+  .shortcut-row{grid-template-columns:36px minmax(0,1fr) 16px;padding:.7rem .25rem}
+  .shortcut-row strong{font-size:.7rem}
+  .shortcut-row small{font-size:.6rem}
+  .recent-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}
+  .recent-card-copy{padding:.6rem}
+  .recent-card-meta{font-size:.56rem}
+  .recent-title{font-size:.76rem}
+  .recent-author{font-size:.6rem}
+  .editor-form{grid-template-columns:minmax(0,1fr);gap:1rem}
+  .editor-main{grid-template-columns:minmax(0,1fr)}
+  .editor-main>label{grid-column:1/-1!important}
+  .editor-side{grid-template-columns:minmax(0,1fr)}
+  .editor-side .form-actions,.cover-preview-card{grid-column:auto}
+  .editor-form input,.editor-form textarea,.editor-form select,.settings-form input,.settings-form textarea,.settings-form select,.filters select{font-size:16px}
+  .filters{width:100%;flex-direction:column;align-items:stretch}
+  .search-wrap,.search-wrap input,.filters select{width:100%;min-width:0}
+  .table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+  .table-wrap table{min-width:620px}
+  .settings-grid,.two-column,.section-fields{grid-template-columns:minmax(0,1fr)}
+  .section-row{display:block}
+  .remove-section{min-height:40px;margin-top:.4rem;padding:.4rem 0}
+  .login-wrap{min-height:560px;padding:1rem}
+  .login-card{width:min(100%,440px);padding:1.25rem}
+  .login-card input{min-height:46px;font-size:16px}
+  .back-link{left:1rem;top:1rem}
+}
+@media(max-width:380px){
+  .admin-main{padding-inline:.55rem}
+  .admin-top{display:grid;grid-template-columns:minmax(0,1fr)}
+  .admin-top-actions{justify-content:stretch}
+  .admin-top-actions>*{flex:1}
+  .metric-grid{grid-template-columns:minmax(0,1fr)}
+  .recent-grid{grid-template-columns:minmax(0,1fr)}
+  .workflow-track{grid-template-columns:minmax(0,1fr)}
+  .hero-stat{align-items:flex-start;gap:.65rem;padding:.65rem}
+  .stat-orbit{width:66px;height:66px}
+  .hero-stat-copy{min-width:0}
+  .panel-heading>button,.text-action{max-width:100%;white-space:normal}
+}
+</style>
+
+<style scoped>
 .admin-shell{--admin-ink:#202a24;--admin-muted:#748078;--admin-line:#e5e8e2;--admin-canvas:#f3f5f1;--admin-deep:#1d332c;min-height:80vh;margin:1.5rem 0 2.25rem;overflow:hidden;border:1px solid #dfe4dd;border-radius:18px;background:var(--admin-canvas);color:var(--admin-ink);box-shadow:0 20px 60px rgba(30,42,35,.08)}
-.login-wrap{min-height:690px;background:linear-gradient(100deg,rgba(22,41,34,.88),rgba(22,41,34,.25)),url('/images/editorial-contact-sheet.webp') center 62%/cover}
+.login-wrap{min-height:690px;background:linear-gradient(100deg,rgba(22,41,34,.88),rgba(22,41,34,.25)),url('/images/editorial/neighborhood-meeting.webp') center 48%/cover}
 .back-link{color:#fff}.login-card{width:min(100%,440px);padding:2.3rem;border:1px solid #ffffff9c;border-radius:14px;background:#fffefaf5;box-shadow:0 26px 65px #101d1870;backdrop-filter:blur(12px)}
 .admin-eyebrow{font:800 .62rem/1.2 var(--sans);letter-spacing:.14em;color:#984d39;text-transform:uppercase}.login-card h1{font:600 2rem/1.12 var(--serif);letter-spacing:-.04em;margin:.55rem 0}.login-card>p{font-size:.85rem;line-height:1.6;color:#68716b;margin:0 0 1.4rem}
 .login-card label,.settings-form label,.editor-form label{font-size:.72rem;font-weight:750;color:#39433c}.login-card input,.settings-form input,.settings-form textarea,.editor-form input,.editor-form textarea,.editor-form select,.settings-form select,.filters input,.filters select{min-height:42px;border:1px solid #d4dad3;border-radius:7px;transition:border-color .18s ease,box-shadow .18s ease}.settings-form textarea,.editor-form textarea{resize:vertical;line-height:1.55}
