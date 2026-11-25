@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ article: any; compact?: boolean }>()
+defineProps<{ article: any; compact?: boolean; variant?: number }>()
 function formatDate(date?: string) {
   if (!date) return 'Em edição'
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(date))
@@ -9,7 +9,7 @@ function formatDate(date?: string) {
 <template>
   <article class="article-card" :class="{ compact }">
     <NuxtLink class="article-image-link" :to="`/artigo/${article.slug}`" :aria-label="`Ler: ${article.title}`">
-      <ArticleArtwork :article="article" />
+      <ArticleArtwork :article="article" :variant="variant" />
       <span class="image-category">{{ article.category_name }}</span>
       <span class="image-arrow" aria-hidden="true">↗</span>
     </NuxtLink>

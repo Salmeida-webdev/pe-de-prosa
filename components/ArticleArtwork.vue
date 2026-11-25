@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{ article: { id?: string; slug?: string; category?: string; category_name?: string; title?: string; excerpt?: string; cover?: string; alt_text?: string }; priority?: boolean }>(), { priority: false })
+const props = withDefaults(defineProps<{ article: { id?: string; slug?: string; category?: string; category_name?: string; title?: string; excerpt?: string; cover?: string; alt_text?: string }; priority?: boolean; variant?: number }>(), { priority: false, variant: 0 })
 
 type EditorialPhoto = { src: string; alt: string; keywords: string[] }
 
@@ -54,7 +54,7 @@ const selectedPhoto = computed(() => {
   }
   const hash = [...key].reduce((total, character) => (total * 31 + character.charCodeAt(0)) >>> 0, 7)
   const pool = matchingGroups.length ? matchingGroups[hash % matchingGroups.length]?.photoIds || [] : photos.map((_, index) => index)
-  const photoIndex = pool[hash % pool.length] ?? 0
+  const photoIndex = pool[(hash + Math.max(0, props.variant)) % pool.length] ?? 0
   return photos[photoIndex] || photos[0]!
 })
 
@@ -70,7 +70,7 @@ const alt = computed(() => customPhoto.value ? props.article.alt_text || `Fotogr
 </template>
 
 <style scoped>
-.cover-art{position:relative;isolation:isolate;overflow:hidden;display:block;aspect-ratio:1.58;min-height:205px;border-radius:0;background:#d9d6ce}
+.cover-art{position:relative;isolation:isolate;overflow:hidden;display:block;width:100%;min-width:0;max-width:100%;aspect-ratio:1.58;min-height:205px;border-radius:0;background:#d9d6ce}
 .cover-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .35s ease,filter .35s ease}
 @media(prefers-reduced-motion:reduce){.cover-art img{transition:none}}
 </style>

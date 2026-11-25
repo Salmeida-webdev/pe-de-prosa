@@ -15,7 +15,7 @@ useSeoMeta({ title: cat.name, description: cat.description, ogTitle: `${cat.name
 <template>
   <div class="container">
     <header class="page-intro"><span class="eyebrow">Editoria</span><h1>{{ cat.name }}</h1><p>{{ cat.description }}</p><div class="subline">{{ data.total }} textos no acervo</div></header>
-    <section class="listing"><div class="article-grid"><ArticleCard v-for="article in data.articles" :key="article.id" :article="article" /></div><p v-if="!data.articles.length" class="empty-state">Ainda não há textos publicados nesta editoria.</p><PortalPagination :current="data.page" :total="data.totalPages" :path="`/categoria/${slug}`" /></section>
+    <section class="listing"><div class="article-grid"><ArticleCard v-for="(article,index) in data.articles" :key="article.id" :article="article" :variant="Number(index)" /></div><p v-if="!data.articles.length" class="empty-state">Ainda não há textos publicados nesta editoria.</p><PortalPagination :current="data.page" :total="data.totalPages" :path="`/categoria/${slug}`" /></section>
   </div>
 </template>
 
